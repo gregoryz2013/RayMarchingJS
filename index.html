@@ -283,26 +283,30 @@
         let firstMouse = true;
 
         function onMouseMove(e) {
-            if (firstMouse) {
-                lastX = e.clientX;
-                lastY = e.clientY;
-                firstMouse = false;
-            }
-            let dx = e.clientX - lastX;
-            let dy = e.clientY - lastY;
-            lastX = e.clientX;
-            lastY = e.clientY;
+            let dx = e.movementX || 0;
+            let dy = e.movementY || 0;
 
-            // Подстройка чувствительности
             yaw += dx * 0.0025;
             pitch -= dy * 0.0025;
 
-            // Ограничение угла pitch (чтобы не было переворота)
+            // Clamp pitch to avoid flipping
             let limit = Math.PI / 2;
             pitch = Math.max(-limit, Math.min(limit, pitch));
         }
 
-        window.addEventListener('mousemove', onMouseMove);
+        canvas.addEventListener('click', () => {
+            canvas.requestPointerLock();
+        });
+
+        document.addEventListener('pointerlockchange', () => {
+            if (document.pointerLockElement === canvas) {
+                console.log("Pointer locked");
+                document.addEventListener('mousemove', onMouseMove);
+            } else {
+                console.log("Pointer unlocked");
+                document.removeEventListener('mousemove', onMouseMove);
+            }
+        });
 
         function getForwardVector() {
             let x = Math.cos(yaw) * Math.cos(pitch);
